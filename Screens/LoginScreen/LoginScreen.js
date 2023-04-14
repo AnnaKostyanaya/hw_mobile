@@ -16,7 +16,7 @@ const initialState = {
     email: "",
     password: "",
 }
-const LoginScreen = () => {
+const LoginScreen = ({ navigation }) => {
 
     const [isShowKeyboard, setIsShowKeyboard] = useState(false);
     const [state, setState] = useState(initialState);
@@ -71,8 +71,9 @@ return (
                 </TouchableOpacity>
                 <TouchableOpacity
                     activeOpacity={0.8}
+                    onPress={() => navigation.navigate("Register")}
                 >
-                    <Text style={styles.textLog}>
+                    <Text style={styles.textLog} >
                     Немає аккаунта? Зареєструватися
                     </Text>
                 </TouchableOpacity>

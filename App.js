@@ -1,12 +1,14 @@
 import React, {useState} from "react";
-import RegistrationScreen from './Screens/RegistrationScreen/RegistrationScreen';
 import {
   View,
 } from "react-native";
-// import LoginScreen from './Screens/LoginScreen/LoginScreen';
+
 
 import * as Font from "expo-font";
 import { AppLoading } from "expo";
+import { NavigationContainer } from "@react-navigation/native";
+
+import { useRoute } from "./router";
 
 const loadApplication = async () => {
   await Font.loadAsync({
@@ -15,24 +17,25 @@ const loadApplication = async () => {
   });
 };
 
+
 export default function App() {
   // const [iasReady, setIasReady] = useState(false);
+  const routing = useRoute(true);
 
   // if (!iasReady) {
   //   return (
   //     <AppLoading
   //       startAsync={loadApplication}
   //       onFinish={() => setIasReady(true)}
+  //           onError={console.warn}
   //     />
   //   );
   // }
 
   
-  return (
-    <>
-      <RegistrationScreen/>
-      {/* <LoginScreen/> */}
-    </>
+return (
+  <NavigationContainer>
+    {routing}
+  </NavigationContainer>
   );
 }
-
