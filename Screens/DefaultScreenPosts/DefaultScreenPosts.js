@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import { View, Text, StyleSheet, FlatList, Image, Button } from "react-native";
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
 
 
 const DefaultScreenPosts = ({ route, navigation }) => {
@@ -13,6 +13,7 @@ const DefaultScreenPosts = ({ route, navigation }) => {
         }
     }, [route.params]);
     console.log("posts", posts);
+
     return (
         <View style={styles.container}>
         <FlatList
@@ -33,11 +34,9 @@ const DefaultScreenPosts = ({ route, navigation }) => {
             </View>
             )}
         />
-        <Button title="go to map" onPress={() => navigation.navigate("MapScreen")} />
-        <Button
-            title="go to Comments"
-            onPress={() => navigation.navigate("CommentsScreen")}
-        />
+        <TouchableOpacity title="Location" onPress={() => navigation.navigate("MapScreen")} />
+        <TouchableOpacity
+            title="Comments" onPress={() => navigation.navigate("CommentsScreen")} />
         </View>
     );
 };
