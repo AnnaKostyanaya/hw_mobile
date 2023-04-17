@@ -80,16 +80,16 @@ if (!permissions.location || !permissions.camera) {
       <View style={{ width: "100%", marginLeft: 64, }}>
         <TextInput
             style={{ marginTop: 47, fontSize: 16,  fontWeight: 'bold'}}
-            placeholder="Назва"
+            placeholder="Назва..."
             placeholderTextColor={"#212121"}
             onFocus={() => setIsShowKeyboard(true)}
             onChangeText={(value) => setState((prevState) => ({...prevState, name: value}))}
         />
-        <View style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-          <Feather name="map-pin" size={16} color="#BDBDBD" />
+        <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 47}}>
+          <Feather name="map-pin" size={16} color="#BDBDBD" style={{marginRight: 6}}/>
           <TextInput
-              style={{ marginTop: 47, fontSize: 14, }}
-              placeholder="Місцевість"
+              style={{ fontSize: 14, marginLeft: 7 }}
+              placeholder="Місцевість..."
               placeholderTextColor={"#212121"}
               onFocus={() => setIsShowKeyboard(true)}
               onChangeText={(value) => setState((prevState) => ({...prevState, place: value}))}
@@ -97,7 +97,7 @@ if (!permissions.location || !permissions.camera) {
         </View>
       </View>
       <TouchableOpacity style={styles.sendBtn} onPress={sendPhoto}>
-          <Text style={styles.sendLabel}>Publish</Text>
+          <Text style={styles.sendLabel}>Опублікувати</Text>
         </TouchableOpacity>
     </View>
   );
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   camera: {
-    marginTop: 92,
+    marginTop: 32,
     height: 240,
     width: 343,
     alignItems: "center",
