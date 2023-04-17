@@ -19,18 +19,23 @@ const MainTab = createBottomTabNavigator();
 export const useRoute = (isAuth) => {
     if (!isAuth) {
         return (
-        <AuthStack.Navigator>
-            <AuthStack.Screen
-            options={{
-                headerShown: false,
+        <AuthStack.Navigator 
+        screenOptions={{
+                "tabBarShowLabel": false,
+                "tabBarStyle": [
+                {
+                    "display": "flex"
+                },
+                null
+                ]
             }}
+        // tabBarOptions={{showLabel: false}}
+        >
+            <AuthStack.Screen
             name="Login"
             component={LoginScreen}
             />
             <AuthStack.Screen
-            options={{
-                headerShown: false,
-            }}
             name="Register"
             component={RegistrationScreen}
             />
@@ -38,7 +43,18 @@ export const useRoute = (isAuth) => {
         );
     }
     return (
-        <MainTab.Navigator tabBarOptions={{showLabel: false}}>
+        <MainTab.Navigator
+        screenOptions={{
+            "tabBarShowLabel": false,
+            "tabBarStyle": [
+            {
+                "display": "flex"
+            },
+            null
+            ]
+        }} 
+        // tabBarOptions={{showLabel: false}}
+        >
         <MainTab.Screen  options={() => ({
             tabBarIcon: ({ focused, size, color }) => (
                 <Feather name="grid" size={size} color="#212121" />
@@ -58,12 +74,30 @@ export const useRoute = (isAuth) => {
             tabBarIcon: ({ focused, size, color }) => (
                 <Feather name="plus" size={size} color={color} />
             ),
+            headerRight: ({ focused, size, color }) => (
+                <TouchableOpacity>
+                </TouchableOpacity>
+                ),
+                headerTitle: "Create Post",
+                headerTitleAlign: "center",
+                headerRightContainerStyle: {
+                    paddingRight: 10,
+                },
         }}
         name="CreatePostsScreen" component={CreatePostsScreen} />
         <MainTab.Screen  options={{
             tabBarIcon: ({ focused, size, color }) => (
                 <Feather name="user" size={size} color={color} />
             ),
+            headerRight: ({ focused, size, color }) => (
+                <TouchableOpacity>
+                </TouchableOpacity>
+                ),
+                headerTitle: "Profile Screen",
+                headerTitleAlign: "center",
+                headerRightContainerStyle: {
+                    paddingRight: 10,
+                },
             }}
         name="ProfileScreen" component={ProfileScreen} />
         </MainTab.Navigator>
