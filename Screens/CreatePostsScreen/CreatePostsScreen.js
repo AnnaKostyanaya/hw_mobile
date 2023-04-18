@@ -77,18 +77,18 @@ if (!permissions.location || !permissions.camera) {
           </TouchableOpacity>
         </Camera>
       )}
-      <View style={{ width: "100%", marginLeft: 64, }}>
+      <View style={style.textContainer}>
         <TextInput
-            style={{ marginTop: 47, fontSize: 16,  fontWeight: 'bold'}}
+            style={style.nameInput}
             placeholder="Назва..."
             placeholderTextColor={"#212121"}
             onFocus={() => setIsShowKeyboard(true)}
             onChangeText={(value) => setState((prevState) => ({...prevState, name: value}))}
         />
-        <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 47}}>
+        <View style={style.mapContainer}>
           <Feather name="map-pin" size={16} color="#BDBDBD" style={{marginRight: 6}}/>
           <TextInput
-              style={{ fontSize: 14, marginLeft: 7 }}
+              style={style.mapInput}
               placeholder="Місцевість..."
               placeholderTextColor={"#212121"}
               onFocus={() => setIsShowKeyboard(true)}
@@ -147,6 +147,24 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     fontSize: 16,
     },
+  textContainer: { 
+    width: "100%", 
+    marginLeft: 64, 
+  },
+  nameInput: { 
+    marginTop: 47, 
+    fontSize: 16,  
+    fontWeight: 'bold'
+  },
+  mapContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginTop: 47
+  },
+  mapInput: {
+    fontSize: 14, 
+    marginLeft: 7 
+  }
 });
 
 

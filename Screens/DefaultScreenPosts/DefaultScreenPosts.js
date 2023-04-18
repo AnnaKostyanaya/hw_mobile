@@ -21,25 +21,21 @@ const DefaultScreenPosts = ({ route, navigation }) => {
                 keyExtractor={(item, indx) => indx.toString()}
                 renderItem={({ item }) => (
                 <View
-                    style={{
-                    marginBottom: 10,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    }}
+                    style={styles.postContainer}
                 >
                     <Image
                     source={{ uri: item.photo }}
-                    style={{ width: 343, height: 240, borderRadius: 8, }}
+                    style={styles.imageContainer}
                     />
-                    <View  style={{ marginTop: 8, width: "100%", marginLeft: 8, marginRight: 8, justifyContent: "space-evenly"}}>
-                        <Text title="Name" style={{ fontSize: 16,  fontWeight: 'bold'}}>Name</Text>
-                        <View style={{flexDirection: 'row', alignItems: 'center',  marginTop: 11,  justifyContent: 'space-between'}}>
+                    <View  style={styles.describeContainer}>
+                        <Text title="Name" style={styles.textName}>Name</Text>
+                        <View style={styles.iconContainer}>
                             <TouchableOpacity onPress={() => navigation.navigate("CommentsScreen")}> 
                                 <Feather name="message-circle" size={18} color="#BDBDBD" />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => navigation.navigate("MapScreen")} style={{flexDirection: 'row', alignItems: 'center'}} > 
+                            <TouchableOpacity onPress={() => navigation.navigate("MapScreen")} style={styles.locationContainer}> 
                                 <Feather name="map-pin" size={18} color="#BDBDBD" style={{marginRight: 6}}/>
-                                <Text style={{ fontSize: 16, marginLeft: 7, textDecorationLine: 'underline' }} >Location</Text>
+                                <Text style={styles.locationName}>Location</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -57,6 +53,42 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 32,
     },
+postContainer: {
+    marginBottom: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    },
+imageContainer: { 
+    width: 343, 
+    height: 240, 
+    borderRadius: 8, 
+    },
+describeContainer: { 
+    marginTop: 8, 
+    width: "100%", 
+    marginLeft: 8, 
+    marginRight: 8, 
+    justifyContent: "space-evenly"
+    },
+textName: { 
+    fontSize: 16,  
+    fontWeight: 'bold'
+    },
+iconContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center',  
+    marginTop: 11,  
+    justifyContent: 'space-between'
+    },
+locationName: { 
+    fontSize: 16, 
+    marginLeft: 7, 
+    textDecorationLine: 'underline',
+    },
+locationContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center',
+    }, 
 });
 
 export default DefaultScreenPosts;
