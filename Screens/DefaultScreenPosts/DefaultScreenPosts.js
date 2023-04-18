@@ -34,10 +34,10 @@ const DefaultScreenPosts = ({ route, navigation }) => {
                     <View  style={{ marginTop: 8, width: "100%", marginLeft: 8, marginRight: 8, justifyContent: "space-evenly"}}>
                         <Text title="Name" style={{ fontSize: 16,  fontWeight: 'bold'}}>Name</Text>
                         <View style={{flexDirection: 'row', alignItems: 'center',  marginTop: 11,  justifyContent: 'space-between'}}>
-                            <TouchableOpacity onPress={() => navigation.navigate("MapScreen")}> 
+                            <TouchableOpacity onPress={() => navigation.navigate("CommentsScreen")}> 
                                 <Feather name="message-circle" size={18} color="#BDBDBD" />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => navigation.navigate("CommentsScreen") } style={{flexDirection: 'row', alignItems: 'center'}} > 
+                            <TouchableOpacity onPress={() => navigation.navigate("MapScreen")} style={{flexDirection: 'row', alignItems: 'center'}} > 
                                 <Feather name="map-pin" size={18} color="#BDBDBD" style={{marginRight: 6}}/>
                                 <Text style={{ fontSize: 16, marginLeft: 7, textDecorationLine: 'underline' }} >Location</Text>
                             </TouchableOpacity>
