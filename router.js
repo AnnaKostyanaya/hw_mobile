@@ -12,11 +12,19 @@ import CreatePostsScreen from './Screens/CreatePostsScreen/CreatePostsScreen';
 import ProfileScreen from './Screens/ProfileScreen/ProfileScreen';
 import { TouchableOpacity } from "react-native";
 
+import { authSignOutUser } from "./redux/auth/authOperations";
+import { useDispatch } from "react-redux";
+
+
 
 const AuthStack = createStackNavigator();
 const MainTab = createBottomTabNavigator();
 
 export const useRoute = (isAuth) => {
+    const dispatch = useDispatch();
+    const signOut = () => {
+        dispatch(authSignOutUser());
+    };
     if (!isAuth) {
         return (
         <AuthStack.Navigator 
@@ -60,7 +68,7 @@ export const useRoute = (isAuth) => {
                 <Feather name="grid" size={size} color="#212121" />
             ),
             headerRight: ({ focused, size, color }) => (
-                <TouchableOpacity>
+                <TouchableOpacity onPress={signOut}>
                     <AntDesign name="logout" size={24} color="#BDBDBD" />
                 </TouchableOpacity>
                 ),
@@ -90,7 +98,8 @@ export const useRoute = (isAuth) => {
                 <Feather name="user" size={size} color={color} />
             ),
             headerRight: ({ focused, size, color }) => (
-                <TouchableOpacity>
+                <TouchableOpacity onPress={signOut}>
+                    <AntDesign name="logout" size={24} color="#BDBDBD" />
                 </TouchableOpacity>
                 ),
                 headerTitle: "Profile Screen",

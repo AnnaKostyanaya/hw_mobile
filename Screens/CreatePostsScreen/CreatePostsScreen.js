@@ -1,9 +1,14 @@
 import React, {useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { View, StyleSheet, Image, Text, TouchableOpacity, TextInput, Keyboard } from "react-native";
 import { Camera } from 'expo-camera';
 import { Feather } from '@expo/vector-icons';
 import * as Location from "expo-location";
-import { useIsFocused } from "@react-navigation/native"
+import { useIsFocused } from "@react-navigation/native";
+import { storage, app, db } from "../../firebase/config";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { collection, addDoc } from "firebase/firestore"; 
+
 
 const initialState = {
   name: "",
@@ -13,12 +18,16 @@ const initialState = {
 const CreatePostsScreen = ({ navigation }) => {
   const [permissions, setPermissions] = useState({ location: "granted", camera: "granted" });
 
-  const [state, setState] = useState(initialState);
+  const [localState, setLocalState] = useState(initialState);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
-
+  const [location, setLocation] = useState(null);
   const [camera, setCamera] = useState(null);
   const [photo, setPhoto] = useState(null);
   const isFocused = useIsFocused();
+
+  const { userId, email, login } = useSelector((store) => store.auth);
+  
+  console.log(userId, email, login)
   
 useEffect(() => {
   (async () => {
@@ -45,19 +54,55 @@ if (!permissions.location || !permissions.camera) {
 
   const takePhoto = async () => {
     if (camera) {
-      const photo = await camera.takePictureAsync();
-      const location = await Location.getCurrentPositionAsync();
-      console.log("latitude", location.coords.latitude);
-      console.log("longitude", location.coords.longitude);
+      const photo = await camera.takePictureAsync();      
+      console.log("photo", photo);
+      const locationRes = await Location.getCurrentPositionAsync();
+      setLocation(locationRes);
       setPhoto(photo.uri);
     }
   };
 
-  console.log("photo", photo);
-
   const sendPhoto = async () => {
-      navigation.navigate("DefaultScreenPosts", { photo });
+      uploadPhotoToServer();
+      uploadPostToServer();
+      navigation.navigate("DefaultScreenPosts");
+      setPhoto(null);
+      setLocalState({
+        name: "",
+        place: "",
+      });
   };
+
+  const uploadPostToServer = async () => {
+      const photoURL = await uploadPhotoToServer();
+      const createPost = await addDoc(collection(db, "posts"), {
+        name: localState.name,
+        place: localState.place,
+        location: location.coords,
+        photo: photoURL,
+        userId, 
+        login,
+        email,
+      });
+      // console.log("localState.name", localState.name, "localState.place", localState.place, "location.coords", location.coords, "photoURL", photoURL, userId, login, email );
+  }
+
+  const uploadPhotoToServer = async () => {
+    try {
+      const response = await fetch(photo);
+      const file = await response.blob();
+      const uniquePostId = Date.now().toString();
+      const storage = getStorage(app);
+      const storageRef = ref(storage, `postImage/${uniquePostId}`);
+      await uploadBytes(storageRef, file);
+  
+      const photoURL = await getDownloadURL(storageRef);
+      return photoURL;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   return (
     <View style={styles.container}>
@@ -77,22 +122,22 @@ if (!permissions.location || !permissions.camera) {
           </TouchableOpacity>
         </Camera>
       )}
-      <View style={style.textContainer}>
+      <View style={styles.textContainer}>
         <TextInput
-            style={style.nameInput}
+            style={styles.nameInput}
             placeholder="Назва..."
             placeholderTextColor={"#212121"}
             onFocus={() => setIsShowKeyboard(true)}
-            onChangeText={(value) => setState((prevState) => ({...prevState, name: value}))}
+            onChangeText={(value) => setLocalState((prevState) => ({...prevState, name: value}))}
         />
-        <View style={style.mapContainer}>
+        <View style={styles.mapContainer}>
           <Feather name="map-pin" size={16} color="#BDBDBD" style={{marginRight: 6}}/>
           <TextInput
-              style={style.mapInput}
+              style={styles.mapInput}
               placeholder="Місцевість..."
               placeholderTextColor={"#212121"}
               onFocus={() => setIsShowKeyboard(true)}
-              onChangeText={(value) => setState((prevState) => ({...prevState, place: value}))}
+              onChangeText={(value) => setLocalState((prevState) => ({...prevState, place: value}))}
           />
         </View>
       </View>

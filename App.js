@@ -1,14 +1,11 @@
 import React, {useState} from "react";
-import {
-  View,
-} from "react-native";
-
-
+import { View } from "react-native";
 import * as Font from "expo-font";
 import { AppLoading } from "expo";
-import { NavigationContainer } from "@react-navigation/native";
-
+import { Provider, useSelector } from "react-redux";
+import { store } from "./redux/store";
 import { useRoute } from "./router";
+import Main from "./component/Main";
 
 const loadApplication = async () => {
   await Font.loadAsync({
@@ -20,7 +17,6 @@ const loadApplication = async () => {
 
 export default function App() {
   // const [iasReady, setIasReady] = useState(false);
-  const routing = useRoute(true);
 
   // if (!iasReady) {
   //   return (
@@ -34,8 +30,8 @@ export default function App() {
 
   
 return (
-  <NavigationContainer>
-    {routing}
-  </NavigationContainer>
+  <Provider store = {store}>
+    <Main />
+  </Provider>
   );
 }

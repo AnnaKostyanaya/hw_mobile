@@ -12,6 +12,9 @@ ImageBackground,
 TouchableWithoutFeedback
 } from "react-native";
 
+import { authSignInUser } from "../../redux/auth/authOperations";
+import { useDispatch } from "react-redux";
+
 const initialState = {
     email: "",
     password: "",
@@ -20,20 +23,27 @@ const LoginScreen = ({ navigation }) => {
 
     const [isShowKeyboard, setIsShowKeyboard] = useState(false);
     const [state, setState] = useState(initialState);
+    
+    const dispatch = useDispatch();
 
-    const keyBoardHide = () => {
+    const handleSubmit = () => {
     setIsShowKeyboard(false);
     Keyboard.dismiss();
-    console.log(state);
+    dispatch(authSignInUser(state));
+    setState(initialState);
 }
 
+    const keyboardHide = () => {
+    Keyboard.dismiss();
+    setIsShowKeyboard(false);
+    };
 
 return (
 <ImageBackground
     style={styles.image}
     source={require("../../assets/BG.png")}
 >
-    <TouchableWithoutFeedback onPress={() => {keyBoardHide()}}>
+    <TouchableWithoutFeedback onPress={keyboardHide}>
         <View style={styles.containerForm}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -48,6 +58,7 @@ return (
                     placeholder="Адреса елктронної пошти"
                     placeholderTextColor={"#BDBDBD"}
                     onFocus={() => setIsShowKeyboard(true)}
+                    value={state.email}
                     onChangeText={(value) => setState((prevState) => ({...prevState, email: value}))}
                 />
                 <TextInput
@@ -56,6 +67,7 @@ return (
                     secureTextEntry={true}
                     placeholderTextColor={"#BDBDBD"}
                     onFocus={() => setIsShowKeyboard(true)}
+                    value={state.password}
                     onChangeText={(value) => setState((prevState) => ({...prevState, password: value}))}
                 />
                 </View>
@@ -65,7 +77,7 @@ return (
                 <TouchableOpacity
                     style={styles.btnReg}
                     activeOpacity={0.8}
-                    onPress={() => {keyBoardHide()}}
+                    onPress={handleSubmit}
                 >
                     <Text style={styles.textBtn}>Увійти</Text>
                 </TouchableOpacity>

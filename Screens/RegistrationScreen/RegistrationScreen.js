@@ -12,6 +12,8 @@ Platform,
 Keyboard,
 TouchableWithoutFeedback
 } from "react-native";
+import { authSignUpUser } from "../../redux/auth/authOperations";
+import { useDispatch } from "react-redux";
 
 const initialState = {
     login: "",
@@ -24,25 +26,34 @@ const RegistrationScreen = ({ navigation }) => {
     const [isShowKeyboard, setIsShowKeyboard] = useState(false);
     const [state, setState] = useState(initialState);
 
-    const keyBoardHide = () => {
+    const dispatch = useDispatch();
+
+    const handleSubmit = () => {
         setIsShowKeyboard(false);
         Keyboard.dismiss();
+
+        dispatch(authSignUpUser(state));
+        setState(initialState);
     }
+    const keyboardHide = () => {
+        Keyboard.dismiss();
+        setIsShowKeyboard(false);
+    };
 
 return (
 <ImageBackground
     style={styles.image}
     source={require('../../assets/BG.png')}
 >
-    <TouchableWithoutFeedback onPress={() => {keyBoardHide}}>
+    <TouchableWithoutFeedback onPress={keyboardHide}>
         <View style={styles.containerForm}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
                 <View style={styles.avatar}>
-                    <View style={styles.addIconContainer}>
+                    <TouchableOpacity style={styles.addIconContainer}>
                         <Image style={styles.addIcon} source={require('../../assets/add.png')}></Image>
-                    </View>
+                    </TouchableOpacity>
                 </View>
                 <View style={{ ...styles.form, marginBottom: isShowKeyboard ? 32 : 0 }}>
                 <Text style={styles.textReg}>Реєстрація</Text>
@@ -51,6 +62,7 @@ return (
                     placeholder="Логін"
                     placeholderTextColor={"#BDBDBD"}
                     onFocus={() => setIsShowKeyboard(true)}
+                    value={state.login}
                     onChangeText={(value) => setState((prevState) => ({...prevState, login: value}))}
                 />
                 <TextInput
@@ -58,6 +70,7 @@ return (
                     placeholder="Адреса електронної пошти"
                     placeholderTextColor={"#BDBDBD"}
                     onFocus={() => setIsShowKeyboard(true)}
+                    value={state.email}
                     onChangeText={(value) => setState((prevState) => ({...prevState, email: value}))}
                 />
                 <TextInput
@@ -66,6 +79,7 @@ return (
                     secureTextEntry={true}
                     placeholderTextColor={"#BDBDBD"}
                     onFocus={() => setIsShowKeyboard(true)}
+                    value={state.password}
                     onChangeText={(value) => setState((prevState) => ({...prevState, password: value}))}
                 />
                 </View>
@@ -76,7 +90,7 @@ return (
                 <TouchableOpacity
                 style={styles.btnReg}
                 activeOpacity={0.8}
-                onPress={() => {keyBoardHide}}
+                onPress={handleSubmit}
                 >
                 <Text style={styles.textBtn}>Зареєструватися</Text>
                 </TouchableOpacity>

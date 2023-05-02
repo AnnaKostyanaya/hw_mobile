@@ -1,18 +1,28 @@
 import React, {useState, useEffect} from "react";
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
 import { Feather } from '@expo/vector-icons';
+import { db } from "../../firebase/config";
+import { collection, onSnapshot } from "firebase/firestore";
+
 
 const DefaultScreenPosts = ({ route, navigation }) => {
 
     const [posts, setPosts] = useState([]);
-    console.log("route.params", route.params);
+
+    const getAllPosts = async () => {
+        onSnapshot(collection(db, "posts"), (snapshot) => {
+            const posts = [];
+            snapshot.forEach((doc) => {
+                posts.push({ ...doc.data(), id: doc.id });
+            });
+            setPosts(posts);
+            });
+        };
 
     useEffect(() => {
-        if (route.params) {
-        setPosts((prevState) => [...prevState, route.params]);
-        }
-    }, [route.params]);
-    console.log("posts", posts);
+        getAllPosts();
+        // console.log(posts);
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -28,14 +38,14 @@ const DefaultScreenPosts = ({ route, navigation }) => {
                     style={styles.imageContainer}
                     />
                     <View  style={styles.describeContainer}>
-                        <Text title="Name" style={styles.textName}>Name</Text>
+                        <Text title="Name" style={styles.textName}>{item.name}</Text>
                         <View style={styles.iconContainer}>
-                            <TouchableOpacity onPress={() => navigation.navigate("CommentsScreen")}> 
+                            <TouchableOpacity onPress={() => navigation.navigate("CommentsScreen", {postId: item.id, postPhoto: item.photo})}> 
                                 <Feather name="message-circle" size={18} color="#BDBDBD" />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => navigation.navigate("MapScreen")} style={styles.locationContainer}> 
+                            <TouchableOpacity onPress={() => navigation.navigate("MapScreen", {location: item.location})} style={styles.locationContainer}> 
                                 <Feather name="map-pin" size={18} color="#BDBDBD" style={{marginRight: 6}}/>
-                                <Text style={styles.locationName}>Location</Text>
+                                <Text style={styles.locationName}>{item.place}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -55,6 +65,7 @@ const styles = StyleSheet.create({
     },
 postContainer: {
     marginBottom: 10,
+    marginTop: 32,
     justifyContent: "center",
     alignItems: "center",
     },
