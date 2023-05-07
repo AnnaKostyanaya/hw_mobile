@@ -1,13 +1,17 @@
 import React, {useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { View, StyleSheet, Image, Text, TouchableOpacity, TextInput, Keyboard } from "react-native";
+import { View, StyleSheet, Image, Text, TouchableOpacity, TextInput, Keyboard, ImageBackground } from "react-native";
 import { Camera } from 'expo-camera';
 import { Feather } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons'; 
 import * as Location from "expo-location";
 import { useIsFocused } from "@react-navigation/native";
 import { storage, app, db } from "../../firebase/config";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc } from "firebase/firestore"; 
+import * as MediaLibrary from 'expo-media-library';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 
 
 const initialState = {
@@ -16,7 +20,8 @@ const initialState = {
 }
 
 const CreatePostsScreen = ({ navigation }) => {
-  const [permissions, setPermissions] = useState({ location: "granted", camera: "granted" });
+  const [permissions, setPermissions] = useState({ location: "granted", camera: "granted", media: "granted" });
+
 
   const [localState, setLocalState] = useState(initialState);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
@@ -27,27 +32,41 @@ const CreatePostsScreen = ({ navigation }) => {
 
   const { userId, email, login } = useSelector((store) => store.auth);
   
-  console.log(userId, email, login)
+  useEffect(() => {
+    (async () => {
+      const [locationStatus, cameraStatus, mediaStatus] = await Promise.all([
+        Location.requestForegroundPermissionsAsync(),
+        Camera.requestCameraPermissionsAsync(),
+        MediaLibrary.requestPermissionsAsync(),
+      ]);
+      setPermissions({ location: locationStatus.status === 'granted', camera: cameraStatus.status === 'granted', media: mediaStatus.status === 'granted' });
+    })();
+  }, []);
   
-useEffect(() => {
-  (async () => {
-    const [locationStatus, cameraStatus] = await Promise.all([
-      Location.requestForegroundPermissionsAsync(),
-      Camera.requestCameraPermissionsAsync(),
-    ]);
-    setPermissions({ location: locationStatus.status === 'granted', camera: cameraStatus.status === 'granted' });
-  })();
-}, []);
+  if (permissions.location === null || permissions.camera === null || permissions.media === null) {
+    return <View />;
+  }
+  
+  if (!permissions.location || !permissions.camera || !permissions.media === null) {
+    return (
+      <View>
+        {!permissions.location && <Text>No access to location</Text>}
+        {!permissions.camera && <Text>No access to camera</Text>}
+        {!permissions.media && <Text>No access to media library</Text>}
+      </View>
+    );
+  }
 
-if (permissions.location === null || permissions.camera === null) {
+if (permissions.location === null || permissions.camera === null || permissions.media === null) {
   return <View />;
 }
 
-if (!permissions.location || !permissions.camera) {
+if (!permissions.location || !permissions.camera || !permissions.media === null) {
   return (
     <View>
       {!permissions.location && <Text>No access to location</Text>}
       {!permissions.camera && <Text>No access to camera</Text>}
+      {!permissions.media && <Text>No access to media library</Text>}
     </View>
   );
 }
@@ -55,16 +74,43 @@ if (!permissions.location || !permissions.camera) {
   const takePhoto = async () => {
     if (camera) {
       const photo = await camera.takePictureAsync();      
-      console.log("photo", photo);
       const locationRes = await Location.getCurrentPositionAsync();
       setLocation(locationRes);
-      setPhoto(photo.uri);
+  
+      const asset = await MediaLibrary.createAssetAsync(photo.uri);
+  
+      const albumName = 'DCIM';
+      const album = await MediaLibrary.getAlbumAsync(albumName);
+      const assets = await MediaLibrary.getAssetsAsync({ album: album.id });
+      const foundAsset = assets.assets.find((a) => a.filename === asset.filename);
+      if (foundAsset) {
+        setPhoto(foundAsset.uri);
+      } else {
+        console.log('Asset not found');
+      }
     }
   };
 
+const uploadPhotoFromStorage = async () => {
+  let result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.All,
+    allowsEditing: true,
+    aspect: [4, 3],
+    quality: 1,
+    });
+    
+    if (result) {
+      setPhoto(result.assets[0].uri);
+    }
+};
+
+  const changePhoto = async (photoUri) => {
+          setPhoto(null);
+  };
+
   const sendPhoto = async () => {
-      uploadPhotoToServer();
-      uploadPostToServer();
+    const photoURL = await uploadPhotoToServer(photo);
+      uploadPostToServer(photoURL);
       navigation.navigate("DefaultScreenPosts");
       setPhoto(null);
       setLocalState({
@@ -73,8 +119,7 @@ if (!permissions.location || !permissions.camera) {
       });
   };
 
-  const uploadPostToServer = async () => {
-      const photoURL = await uploadPhotoToServer();
+  const uploadPostToServer = async (photoURL) => {
       const createPost = await addDoc(collection(db, "posts"), {
         name: localState.name,
         place: localState.place,
@@ -84,10 +129,9 @@ if (!permissions.location || !permissions.camera) {
         login,
         email,
       });
-      // console.log("localState.name", localState.name, "localState.place", localState.place, "location.coords", location.coords, "photoURL", photoURL, userId, login, email );
   }
 
-  const uploadPhotoToServer = async () => {
+  const uploadPhotoToServer = async (photo) => {
     try {
       const response = await fetch(photo);
       const file = await response.blob();
@@ -107,27 +151,41 @@ if (!permissions.location || !permissions.camera) {
   return (
     <View style={styles.container}>
       {isFocused && (
-      <Camera style={[styles.camera, { borderRadius: 8 }]} ref={setCamera}>
-        {photo && (
-          <View style={[styles.photoContainer, { borderRadius: 8 }]}>
-            <Image 
-              sourse={{ uri: photo }} 
-              style={{ width: 343, height: 240, borderRadius: 8 }}
-            />
-          </View>
-        )}
-          <TouchableOpacity style={styles.snapContainer} onPress={takePhoto}>
-            <Feather name="camera" size={24} color="#BDBDBD" 
-              />
-          </TouchableOpacity>
-        </Camera>
+        <Camera style={[styles.camera, { borderRadius: 8 }]} ref={setCamera}>
+              {photo && (
+                <View style={[styles.photoContainer, { borderRadius: 8 }]}>
+                  <Image 
+                    source={{ 
+                      uri: `${photo}` 
+                  }} 
+                    style={{ width: 343, height: 240, borderRadius: 8, resizeMode: "cover" }}
+                  />
+                </View>
+              )}
+              <TouchableOpacity style={styles.snapContainer} onPress={takePhoto}>
+                <Feather name="camera" size={24} color="#BDBDBD" 
+                  />
+              </TouchableOpacity>    
+        </Camera>  
       )}
       <View style={styles.textContainer}>
+        {photo ? (
+            <TouchableOpacity style={styles.actionContainer} onPress={() => changePhoto(photo)}>
+              <Text style={styles.actionText}>Редагувати фотографію</Text>
+            </TouchableOpacity> 
+        ) : (
+          <TouchableOpacity style={styles.actionContainer} 
+          onPress={uploadPhotoFromStorage}
+          >
+            <Text style={styles.actionText}>Завантажте фотографію</Text>
+          </TouchableOpacity>
+        )}
         <TextInput
             style={styles.nameInput}
             placeholder="Назва..."
-            placeholderTextColor={"#212121"}
+            placeholderTextColor={"#BDBDBD"}
             onFocus={() => setIsShowKeyboard(true)}
+            value={localState.name}
             onChangeText={(value) => setLocalState((prevState) => ({...prevState, name: value}))}
         />
         <View style={styles.mapContainer}>
@@ -135,15 +193,19 @@ if (!permissions.location || !permissions.camera) {
           <TextInput
               style={styles.mapInput}
               placeholder="Місцевість..."
-              placeholderTextColor={"#212121"}
+              placeholderTextColor={"#BDBDBD"}
               onFocus={() => setIsShowKeyboard(true)}
+              value={localState.place}
               onChangeText={(value) => setLocalState((prevState) => ({...prevState, place: value}))}
           />
         </View>
       </View>
-      <TouchableOpacity style={styles.sendBtn} onPress={sendPhoto}>
-          <Text style={styles.sendLabel}>Опублікувати</Text>
-        </TouchableOpacity>
+      <TouchableOpacity disabled={!localState.name || !localState.place || !photo} style={[styles.sendBtn, !localState.name || !localState.place ? styles.sendBtnUnactive : styles.sendBtnActive]} onPress={sendPhoto}>
+          <Text style={[styles.sendLabel, !localState.name || !localState.place ? styles.sendLabelUnactive : styles.sendLabelActive]}> Опублікувати</Text>
+      </TouchableOpacity>  
+      <TouchableOpacity style={styles.deleteBtn} onPress={() => navigation.navigate("PostsScreen")}>
+          <AntDesign name="delete" size={24} color="#BDBDBD" />
+      </TouchableOpacity>      
     </View>
   );
 };
@@ -153,6 +215,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "#FFFFFF",
+    paddingLeft: 32,
+    paddingRight: 32,
   },
   camera: {
     marginTop: 32,
@@ -170,7 +234,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 50,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
   photoContainer: {
     position: "absolute",
@@ -180,36 +244,65 @@ const styles = StyleSheet.create({
   sendBtn: {
     width: 343,
     height: 51,
-    backgroundColor: "#FF6C00",
-    padding: 16,
+    padding: 15,
     borderRadius: 100,
     alignItems: "center",
     marginTop: 47,
     marginBottom: 16,
     },
+  sendBtnUnactive: {
+    backgroundColor: "#F6F6F6",
+  },
+  sendBtnActive: {
+    backgroundColor: "#FF6C00",
+  },
+  deleteBtn: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: "center",
+    width: 70,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F6F6F6",
+    marginTop: 120,
+  },
   sendLabel: {
-    color: "#fff",
     fontWeight: "400",
     fontSize: 16,
     },
+  sendLabelUnactive: {
+    color: "#BDBDBD",
+    },
+  sendLabelActive: {
+    color: "#fff",
+    },
   textContainer: { 
     width: "100%", 
-    marginLeft: 64, 
   },
   nameInput: { 
-    marginTop: 47, 
+    marginTop: 48, 
     fontSize: 16,  
-    fontWeight: 'bold'
+    fontWeight: '500',
+    color: "#212121",
   },
   mapContainer: {
     flexDirection: 'row', 
     alignItems: 'center', 
-    marginTop: 47
+    marginTop: 47,
   },
   mapInput: {
     fontSize: 14, 
-    marginLeft: 7 
-  }
+    marginLeft: 7,
+    color: "#212121",
+  },
+  actionText: {
+    marginTop: 8, 
+    fontSize: 16,  
+    color: "#BDBDBD",
+  },
+  actionContainer: {
+    marginRight: "auto",
+  },
 });
 
 

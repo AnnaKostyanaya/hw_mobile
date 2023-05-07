@@ -13,19 +13,33 @@ Keyboard,
 TouchableWithoutFeedback
 } from "react-native";
 import { authSignUpUser } from "../../redux/auth/authOperations";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import * as ImagePicker from 'expo-image-picker';
+import { storage, app, db } from "../../firebase/config";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { SvgXml } from 'react-native-svg';
+
+const xmlAdd = `
+    <svg width="37" height="37" viewBox="0 0 37 37" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g transform="rotate(45, 18.5, 18.5)">
+            <circle cx="18.4999" cy="18.5" r="12" fill="white" stroke="#E8E8E8"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M14.2574 13.5503L13.5503 14.2574L17.7929 18.5L13.5503 22.7426L14.2574 23.4497L18.5 19.2071L22.7426 23.4497L23.4498 22.7426L19.2071 18.5L23.4498 14.2574L22.7426 13.5503L18.5 17.7929L14.2574 13.5503Z" fill="red"/>
+        </g>
+    </svg>
+`;
 
 const initialState = {
     login: "",
     email: "",
     password: "",
+    photoURL: "",
 }
 
 const RegistrationScreen = ({ navigation }) => {
 
     const [isShowKeyboard, setIsShowKeyboard] = useState(false);
     const [state, setState] = useState(initialState);
-
+    
     const dispatch = useDispatch();
 
     const handleSubmit = () => {
@@ -40,6 +54,36 @@ const RegistrationScreen = ({ navigation }) => {
         setIsShowKeyboard(false);
     };
 
+    const selectImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+            });
+        
+            if (result) {
+                const photoURL = await uploadPhotoToServer(result.assets[0].uri);
+                setState(prevState => ({...prevState, photoURL: photoURL}));
+            }
+            };
+    
+    const uploadPhotoToServer = async (image) => {
+        try {
+            const response = await fetch(image);
+            const file = await response.blob();
+            const uniqueUserId = Date.now().toString();
+            const storage = getStorage(app);
+            const storageRef = ref(storage, `userImage/${uniqueUserId}`);
+            await uploadBytes(storageRef, file);
+        
+            const photoURL = await getDownloadURL(storageRef);
+            return photoURL;
+            } catch (error) {
+            console.log(error);
+            }
+        };
+
 return (
 <ImageBackground
     style={styles.image}
@@ -51,8 +95,10 @@ return (
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
                 <View style={styles.avatar}>
-                    <TouchableOpacity style={styles.addIconContainer}>
-                        <Image style={styles.addIcon} source={require('../../assets/add.png')}></Image>
+                    {state.photoURL && <Image source={{ uri: state.photoURL }} style={{ width: 120, height: 120 }} />}
+                    <TouchableOpacity style={styles.addIconContainer} onPress={selectImage}>
+                        <SvgXml xml={xmlAdd} />
+                        {/* <Image style={styles.addIcon} source={require('../../assets/add.png')}></Image> */}
                     </TouchableOpacity>
                 </View>
                 <View style={{ ...styles.form, marginBottom: isShowKeyboard ? 32 : 0 }}>
@@ -131,13 +177,15 @@ avatar: {
     transform: [{ translateX: parseInt("-50%") }],
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
     backgroundColor: "#F6F6F6",
     zIndex: 999,
 }, 
 addIconContainer: {
     position: 'absolute',
-    top: 80,
-    right: -12,
+    top: 70,
+    right: -18,
     zIndex: 999,
 },
 addIcon: {

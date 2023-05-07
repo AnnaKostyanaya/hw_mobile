@@ -10,7 +10,7 @@ import LoginScreen from './Screens/LoginScreen/LoginScreen';
 import PostsScreen from './Screens/PostsScreen/PostsScreen';
 import CreatePostsScreen from './Screens/CreatePostsScreen/CreatePostsScreen';
 import ProfileScreen from './Screens/ProfileScreen/ProfileScreen';
-import { TouchableOpacity } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
 import { authSignOutUser } from "./redux/auth/authOperations";
 import { useDispatch } from "react-redux";
@@ -28,7 +28,7 @@ export const useRoute = (isAuth) => {
     if (!isAuth) {
         return (
         <AuthStack.Navigator 
-        screenOptions={{
+        screenOptions={{ 
                 "tabBarShowLabel": false,
                 "tabBarStyle": [
                 {
@@ -37,7 +37,6 @@ export const useRoute = (isAuth) => {
                 null
                 ]
             }}
-        // tabBarOptions={{showLabel: false}}
         >
             <AuthStack.Screen
             name="Login"
@@ -53,15 +52,17 @@ export const useRoute = (isAuth) => {
     return (
         <MainTab.Navigator
         screenOptions={{
-            "tabBarShowLabel": false,
-            "tabBarStyle": [
-            {
-                "display": "flex"
-            },
-            null
-            ]
+            tabBarShowLabel: false,
+            tabBarStyle: [
+                {
+                    display: "flex",
+                    height: 83,
+                    paddingTop: 9,
+                    paddingBottom: 34,
+                    },
+                    null,
+                ],
         }} 
-        // tabBarOptions={{showLabel: false}}
         >
         <MainTab.Screen  options={() => ({
             tabBarIcon: ({ focused, size, color }) => (
@@ -72,21 +73,35 @@ export const useRoute = (isAuth) => {
                     <AntDesign name="logout" size={24} color="#BDBDBD" />
                 </TouchableOpacity>
                 ),
-                headerTitle: "Posts",
+                headerTitle: "Публікації",
                 headerTitleAlign: "center",
                 headerRightContainerStyle: {
                     paddingRight: 10,
                 },
         })} name="PostsScreen" component={PostsScreen} />
-        <MainTab.Screen  options={{
-            tabBarIcon: ({ focused, size, color }) => (
-                <Feather name="plus" size={size} color={color} />
-            ),
-            headerRight: ({ focused, size, color }) => (
+        <MainTab.Screen 
+            options={{
+                tabBarStyle: { display: 'none' },
+                tabBarIcon: ({ focused, size, color }) => (
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 70,
+                            height: 40,
+                            borderRadius: 20,
+                            backgroundColor: "#FF6C00",
+                        }}
+                        >
+                        <Feather name="plus" size={size} color={"#FFFFFF"} />
+                    </View>
+                ),
+                headerRight: ({ focused, size, color }) => (
                 <TouchableOpacity>
                 </TouchableOpacity>
                 ),
-                headerTitle: "Create Post",
+                headerTitle: "Створити публікацію",
                 headerTitleAlign: "center",
                 headerRightContainerStyle: {
                     paddingRight: 10,
@@ -98,15 +113,10 @@ export const useRoute = (isAuth) => {
                 <Feather name="user" size={size} color={color} />
             ),
             headerRight: ({ focused, size, color }) => (
-                <TouchableOpacity onPress={signOut}>
-                    <AntDesign name="logout" size={24} color="#BDBDBD" />
+                <TouchableOpacity>
                 </TouchableOpacity>
                 ),
-                headerTitle: "Profile Screen",
-                headerTitleAlign: "center",
-                headerRightContainerStyle: {
-                    paddingRight: 10,
-                },
+                headerTitle: "",
             }}
         name="ProfileScreen" component={ProfileScreen} />
         </MainTab.Navigator>

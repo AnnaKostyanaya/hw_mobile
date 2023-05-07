@@ -1,9 +1,9 @@
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "firebase/auth";
 import { authSlice } from "./authReducer";
 
-const { updateUserProfile, authSignOut, authStateChange } = authSlice.actions;
+const { updateUserProfile, authSignOut, authStateChange, updateSelectedImage } = authSlice.actions;
 
-export const authSignUpUser = ({ login, email, password }) => async (
+export const authSignUpUser = ({ login, email, password, photoURL }) => async (
     dispatch,
     getState
 ) => {
@@ -11,15 +11,17 @@ export const authSignUpUser = ({ login, email, password }) => async (
         const auth = getAuth();
         await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(auth.currentUser, {
-            login: displayName,
-            email: email,
+            displayName: login,
+            photoURL: photoURL,
+            
         });
         const user = auth.currentUser;
         const { displayName, uid } = user;
         const userUpdateProfile = {
             login: displayName,
             userId: uid,
-            email: email
+            email: email,
+            photoURL: photoURL,
         };
         dispatch(updateUserProfile(userUpdateProfile));
     } catch (error) {
@@ -36,11 +38,12 @@ try {
     const auth = getAuth();
     await signInWithEmailAndPassword(auth, email, password);
     const user = auth.currentUser;
-    const { displayName, uid } = user;
+    const { displayName, uid, photoURL } = user;
     const userUpdateProfile = {
         login: displayName,
         userId: uid,
         email: email,
+        photoURL: photoURL,
     };
     dispatch(updateUserProfile(userUpdateProfile));
 
@@ -71,3 +74,15 @@ export const authStateChangeUser = () => async (dispatch, getState) => {
         }
     });
 };
+
+export const updateProfileWithAvatar = (photoURL) => async (dispatch) => {
+    try {
+        const auth = getAuth();
+        await updateProfile(auth.currentUser, {
+            photoURL: photoURL,
+        });
+        dispatch(updateSelectedImage(photoURL));
+        } catch (error) {
+        console.log(error);
+        }
+    };

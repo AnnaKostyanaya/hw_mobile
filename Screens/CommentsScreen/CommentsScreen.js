@@ -5,14 +5,16 @@ import { useSelector } from "react-redux";
 import { db } from "../../firebase/config";
 import { collection, addDoc, onSnapshot, serverTimestamp, query, where, doc } from "firebase/firestore"; 
 import moment from 'moment';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const CommentsScreen = ({ route }) => {
     const { postId } = route.params;
     const { postPhoto } = route.params;
-    const [comment, setComment] = useState("");
+    const [comment, setComment] = useState("");                                                                                 
     const [allComments, setAllComments] = useState([]);
-    const { login } = useSelector((state) => state.auth);
+    const { login, userId, photoURL } = useSelector((state) => state.auth); 
+    const [lastSenderId, setLastSenderId] = useState(null);
 
     useEffect(() => {
         getAllComment();
@@ -20,14 +22,14 @@ const CommentsScreen = ({ route }) => {
     }, []);
 
     const sendComment = async () => {
-        try {
-            const commentsRef = collection(db, "posts", postId, "comments");
-            const newCommentRef = await addDoc(commentsRef, { comment, login, data: moment().format('D MMMM YYYY | HH.mm') });
-            console.log(comment)
-            setComment("");
-            console.log(comment)
-        } catch (error) {
-            console.error(error);
+        if (comment) {
+            try {
+                const commentsRef = collection(db, "posts", postId, "comments");
+                const newCommentRef = await addDoc(commentsRef, { comment, login, userId, data: moment().format('D MMMM YYYY | HH.mm') });
+                setComment("");
+            } catch (error) {
+                console.error(error);
+            }
         }
     };
 
@@ -41,17 +43,13 @@ const CommentsScreen = ({ route }) => {
             });
         };
 
-    // const getPost = (postId) => {
-    //     const postDocRef = doc(db, "posts", `postId`);
-    //     onSnapshot(postDocRef, (doc) => {
-    //         if (doc.exists()) {
-    //         const post = { ...doc.data(), id: doc.id };
-    //         setPost(post);
-    //         } else {
-    //         console.log("No such document!");
-    //         }
-    //     });
-    // }
+        const handleNewMessage = (message) => {
+            setMessages([...messages, message]);
+            if (message.senderId !== lastSenderId) {
+                setLastSenderId(message.senderId);
+            }
+        };
+
 
 return (
 <View style={styles.container}>
@@ -62,13 +60,23 @@ return (
         />
     </View>
     <SafeAreaView style={styles.commentArea}>
-        <FlatList
+    <FlatList
         data={allComments}
-        renderItem={({ item }) => (
-            <View style={styles.allCommentsContainer}>
-                <Text>{item.login}</Text>
-                <Text>{item.comment}</Text>
-                <Text>{item.data}</Text>
+        renderItem={({ item, index }) => (
+            <View style={[styles.allCommentsContainer, index % 2 === 0 ? styles.leftComment : styles.rightComment]}>
+                {photoURL ? (
+                    <View style={styles.avatar}>
+                    <Image style={styles.avatarPhoto} source={{ uri: photoURL }} />
+                    </View>
+                ) : (
+                    <View style={styles.avatar}>
+                    <Ionicons name="md-person-circle-outline" size={28} color="#BDBDBD" />
+                    </View>
+                )}
+                <View style={styles.textContainer}>
+                    <Text style={styles.comment}>{item.comment}</Text>
+                    <Text style={[styles.data, index % 2 === 0 ? styles.leftText : styles.rightText]}>{item.data}</Text>
+                </View>
             </View>
         )}
         keyExtractor={(item) => item.id}
@@ -116,12 +124,52 @@ commentArea: {
     flex: 1,
 }, 
 allCommentsContainer: {
+    alignItems: "flex-start", 
+    justifyContent: "flex-end",
+    marginRight: 16,
+    marginLeft: 16,
+},
+rightComment: {
+    flexDirection: "row-reverse"
+},
+leftComment: {
+    flexDirection: 'row', 
+},
+textContainer: {
+    flex: 1,
     width: 299,
     backgroundColor: "rgba(0, 0, 0, 0.03)",
     borderRadius: 6,
-    marginHorizontal: 10,
-    padding: 10,
-    marginBottom: 10,
+    padding: 16,
+    marginBottom: 40,
+},
+comment: {
+    color: "#212121",
+    fontSize: 13,
+},
+data: {
+    color: "#BDBDBD",
+    fontSize: 12,
+    marginTop: 8,
+},
+leftText: {
+    marginLeft: 'auto'
+},
+rightText: {
+    marginRight: 'auto'
+},
+avatar: {
+    width: 28,
+    height: 28,
+    marginRight: 16,
+    marginLeft: 16,
+    borderRadius: 50,
+    zIndex: 999,
+}, 
+avatarPhoto: {
+    width: 28, 
+    height: 28,
+    borderRadius: 50,
 },
 commentContainer: {
     flexDirection: 'row', 

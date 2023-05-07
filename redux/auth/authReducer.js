@@ -6,6 +6,7 @@ const state = {
   login: null,
   email: null,
   stateChange: false,
+  photoURL: "",
 }
 
 export const authSlice = createSlice({
@@ -17,11 +18,18 @@ export const authSlice = createSlice({
       userId: payload.userId,
       login: payload.login,
       email: payload.email,
+      photoURL: payload.photoURL,
     }),
     authStateChange: (state, { payload }) => ({
       ...state,
       stateChange: payload.stateChange,
     }),
     authSignOut: () => state,
+    updateSelectedImage: (state, { payload }) => {
+      return {
+        ...state,
+        photoURL: payload,
+      };
+    },
   },
 });
